@@ -558,6 +558,18 @@
         padding: 25px;
         border-radius: 32px;
       }
+      .address-block .contact-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 10px;
+      }
+      .address-block .contact-row i {
+        width: 24px;
+        text-align: center;
+        color: #025a64;
+      }
 
       footer {
         background: #025a64;
@@ -1349,6 +1361,15 @@
                 required
               />
             </div>
+            <!-- NEW: WhatsApp Number Field -->
+            <div class="form-group">
+              <input
+                type="tel"
+                id="whatsapp"
+                name="whatsapp"
+                placeholder="WhatsApp Number (optional)"
+              />
+            </div>
             <div class="form-group">
               <input type="email" id="email" name="email" placeholder="Email ID" required />
             </div>
@@ -1371,12 +1392,23 @@
               RMT Backside, 2/568C, Pollachi Main road, Malumichampatti,
               Coimbatore, Tamilnadu - 641050.
             </p>
-            <p style="margin-top: 10px;">
-              <i class="fas fa-phone-alt fa-flip-horizontal"></i> +91 94439
-              13628 &nbsp;|&nbsp; +91 95664 13628
-            </p>
-            <p style="margin-top: 10px;"><i class="fas fa-envelope"></i> kalimuthutmindustries@gmail.com</p>
-            <p style="margin-top: 10px;"><i class="fas fa-file-invoice"></i> GST IN: 33BNZPK0667G1ZM</p>
+            <!-- Updated contact rows with icons -->
+            <div class="contact-row">
+              <i class="fab fa-whatsapp" style="color: #25d366;"></i>
+              <span>+91 94439 13628</span>
+            </div>
+            <div class="contact-row">
+              <i class="fas fa-phone-alt fa-flip-horizontal" style="color: #025a64;"></i>
+              <span>+91 95664 13628</span>
+            </div>
+            <div class="contact-row">
+              <i class="fas fa-envelope" style="color: #025a64;"></i>
+              <span>kalimuthutmindustries@gmail.com</span>
+            </div>
+            <div class="contact-row" style="margin-top: 10px;">
+              <i class="fas fa-file-invoice" style="color: #025a64;"></i>
+              <span>GST IN: 33BNZPK0667G1ZM</span>
+            </div>
           </div>
         </div>
       </div>
@@ -1466,6 +1498,8 @@
 
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <!-- EmailJS CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script>
       // Splash
       setTimeout(() => {
@@ -1523,36 +1557,6 @@
             "paediatric end clamp.jpeg",
         },
       ];
-      /*const adultProducts = [
-        "Rail",
-        "End clamp",
-        "Center clamp",
-        "Swivel clamp",
-        "Graduated swivel clamp",
-        "Metaficial clamp",
-        "T ball and socket clamp",
-        "Petrotrochanteric clamp",
-        "Dyna ring clamp",
-        "Template for end clamp",
-        "Template for swivel clamp",
-        "CD unit",
-        "T ball and socket standard",
-        "Plate bending press",
-        "Dynamic wrist and fore arm fixator",
-        "Mayfield skull clamp",
-        "Coles wrist fixator",
-        "Nail remover set",
-        "Depth gauge",
-        "Instrument box",
-        "Half pin introducer",
-        "AO clamp",
-        "Broken screw removal set",
-        "Ankle fixator",
-        "Dynamic fixator t ball and socket -1",
-        "Finger fixator-1",
-        "Finger fixator-2",
-        "Distal radius fixator",
-      ];*/
       const adultProducts = [
         {
           productCode: "PRODUCT CODE: TMRL001",
@@ -2021,10 +2025,96 @@
       showHome(); // default home
       renderPediatric();
       renderAdult();
+
+      // ---- CONTACT FORM WITH WHATSAPP FIELD ----
+      document.addEventListener("DOMContentLoaded", () => {
+        const form = document.getElementById("enquiryForm");
+        if (!form) return;
+
+        // Use the globally defined showMessageModal or fallback
+        const showModal = window.showMessageModal || function (title, msg, type) { alert(msg); };
+
+        const EMAILJS_PUBLIC_KEY = "8d-k4wk6F_BMcWHz5"; // replace with your EmailJS public key
+        const EMAILJS_SERVICE_ID = "service_iebf4dm"; // replace with your EmailJS service id
+        const EMAILJS_TEMPLATE_ID = "template_0t1268r"; // replace with your EmailJS template id
+
+        // Initialize EmailJS (emailjs object is loaded from CDN included in index.html)
+        if (window.emailjs && typeof emailjs.init === "function") {
+          try {
+            emailjs.init(EMAILJS_PUBLIC_KEY);
+          } catch (e) {
+            // ignore init errors
+          }
+        }
+
+        const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        const isValidPhone = (phone) => /^[0-9+\-\s]{7,20}$/.test(phone);
+
+        form.addEventListener("submit", async (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+
+          const name = (form.querySelector("#name") || {}).value?.trim() || "";
+          const phone = (form.querySelector("#phone") || {}).value?.trim() || "";
+          const whatsapp = (form.querySelector("#whatsapp") || {}).value?.trim() || "";
+          const email = (form.querySelector("#email") || {}).value?.trim() || "";
+          const message = (form.querySelector("#message") || {}).value?.trim() || "";
+          const submitBtn = form.querySelector(".submit-btn");
+
+          if (!name || !phone || !email || !message) {
+            showModal("Validation Error", "Please fill in all required fields.", "error");
+            return;
+          }
+
+          if (!isValidEmail(email)) {
+            showModal("Invalid Email", "Please enter a valid email address.", "error");
+            return;
+          }
+
+          if (!isValidPhone(phone)) {
+            showModal("Invalid Phone Number", "Please enter a valid phone number.", "error");
+            return;
+          }
+
+          const originalButtonText = submitBtn ? submitBtn.innerHTML : "Submit";
+          if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = "Sending...";
+          }
+
+          const templateParams = {
+            name,
+            phone,
+            whatsapp: whatsapp || "Not provided",
+            email,
+            message,
+          };
+
+          if (!window.emailjs || typeof emailjs.send !== "function") {
+            console.error("EmailJS not loaded");
+            showModal("Error", "Failed to send enquiry. Please try again later.", "error");
+            if (submitBtn) {
+              submitBtn.disabled = false;
+              submitBtn.innerHTML = originalButtonText;
+            }
+            return;
+          }
+
+          try {
+            await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams);
+            form.reset();
+            showModal("Success!", "Thank you. Your enquiry has been submitted successfully. Our team will contact you shortly.", "success");
+          } catch (err) {
+            console.error("EmailJS send error:", err);
+            showModal("Error", "Failed to send enquiry. Please try again later.", "error");
+          } finally {
+            if (submitBtn) {
+              submitBtn.disabled = false;
+              submitBtn.innerHTML = originalButtonText;
+            }
+          }
+        });
+      });
     </script>
-    <!-- EmailJS CDN (required for client-side email sending) -->
-    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-    <!-- Note: replace placeholders in contact-form.js with your EmailJS keys -->
-    <script src="contact-form.js"></script>
   </body>
 </html>
